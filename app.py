@@ -4,12 +4,18 @@ import json
 from groq import Groq
 
 # Page Configuration
-st.set_page_config(page_title="AI Career & Product Suite", page_icon="🚀", layout="wide")
+
+st.set_page_config(
+    page_title="AI Career & Product Suite",
+    page_icon="🚀",
+    layout="wide"
+)
 
 st.title("🚀 AI Student Utility Suite")
 st.write("Build V1 applications powered by Groq & Llama 3.3")
 
 api_key = os.environ.get("GROQ_API_KEY")
+
 if not api_key:
     if "GROQ_API_KEY" in st.secrets:
         api_key = st.secrets["GROQ_API_KEY"]
@@ -20,125 +26,397 @@ if not api_key:
 
 client = Groq(api_key=api_key)
 
-tab1, tab2 = st.tabs(["🎯 Resume & Email Tailor", "💡 Hackathon MVP Scoper"])
+tab1, tab2 = st.tabs([
+    "🎯 Resume & Email Tailor",
+    "💡 Hackathon MVP Scoper"
+])
 
 # =========================================================
 # TAB 1: RESUME TAILOR
 # =========================================================
+
 with tab1:
     st.header("Smart Resume & Outreach Tailor")
-    
+
     col1, col2 = st.columns(2)
+
     with col1:
-        resume_input = st.text_area("Paste Your Resume:", height=200, placeholder="Paste text here...")
+        resume_input = st.text_area(
+            "Paste Your Resume:",
+            height=200,
+            placeholder="Paste text here..."
+        )
+
     with col2:
-        jd_input = st.text_area("Paste Target Job Description:", height=200, placeholder="Paste JD here...")
-        
-    outreach_type = st.selectbox("Select Output Format:", [
-        "LinkedIn Summary", 
-        "LinkedIn DM", 
-        "Cold Email", 
-        "Cover Letter"
-    ])
-    
+        jd_input = st.text_area(
+            "Paste Target Job Description:",
+            height=200,
+            placeholder="Paste JD here..."
+        )
+
+    outreach_type = st.selectbox(
+        "Select Output Format:",
+        [
+            "LinkedIn Summary",
+            "LinkedIn DM",
+            "Cold Email",
+            "Cover Letter"
+        ]
+    )
+
     if st.button("Draft Tailored Outreach", type="primary"):
         if not resume_input or not jd_input:
             st.warning("Please provide both Resume and Job Description.")
         else:
+
             PROMPTS = {
-                "LinkedIn Summary": f"""You are an expert career coach. Write a compelling LinkedIn "About" Summary for the candidate, positioning them for the target Job Description.
-STRICT RULES:
-1. ONLY use facts, skills, and metrics explicitly stated in the RESUME. NO hallucinations.
-2. Tone: Professional, forward-looking, and engaging. Maximum 3 short paragraphs.
-RESUME: {resume_input}
-JOB DESCRIPTION: {jd_input}""",
+                "LinkedIn Summary": f"""
+You are an expert career coach. Write a compelling LinkedIn "About"
+Summary for the candidate, positioning them for the target Job Description.
 
-                "LinkedIn DM": f"""You are an expert career coach. Write a highly concise LinkedIn Direct Message (under 75 words) to a recruiter for the target Job Description.
 STRICT RULES:
+
+1. ONLY use facts, skills, and metrics explicitly stated in the RESUME.
+   NO hallucinations.
+2. Tone: Professional, forward-looking, and engaging.
+3. Maximum 3 short paragraphs.
+
+RESUME:
+{resume_input}
+
+JOB DESCRIPTION:
+{jd_input}
+""",
+
+                "LinkedIn DM": f"""
+You are an expert career coach. Write a highly concise LinkedIn Direct
+Message (under 75 words) to a recruiter for the target Job Description.
+
+STRICT RULES:
+
 1. ONLY use facts from the RESUME. NO hallucinations.
-2. Tone: Direct, polite, and confident. Include a clear Call to Action (e.g., a 10-min chat).
-RESUME: {resume_input}
-JOB DESCRIPTION: {jd_input}""",
+2. Tone: Direct, polite, and confident.
+3. Include a clear Call to Action (e.g., a 10-min chat).
 
-                "Cold Email": f"""You are an expert career coach. Write a Cold Email to a hiring manager for the target Job Description.
+RESUME:
+{resume_input}
+
+JOB DESCRIPTION:
+{jd_input}
+""",
+
+                "Cold Email": f"""
+You are an expert career coach. Write a Cold Email to a hiring manager
+for the target Job Description.
+
 STRICT RULES:
+
 1. ONLY use facts from the RESUME. NO hallucinations.
 2. Must include a catchy, professional Subject Line.
-3. Tone: Professional, value-driven. Map 1-2 key resume achievements directly to the job requirements.
-RESUME: {resume_input}
-JOB DESCRIPTION: {jd_input}""",
+3. Tone: Professional, value-driven.
+4. Map 1-2 key resume achievements directly to the job requirements.
 
-                "Cover Letter": f"""You are an expert career coach. Write a formal Cover Letter for the target Job Description.
+RESUME:
+{resume_input}
+
+JOB DESCRIPTION:
+{jd_input}
+""",
+
+                "Cover Letter": f"""
+You are an expert career coach. Write a formal Cover Letter for the
+target Job Description.
+
 STRICT RULES:
+
 1. ONLY use facts from the RESUME. NO hallucinations.
-2. Structure: Formal greeting, engaging opening, 2 body paragraphs matching resume skills to JD needs, and a professional closing.
-RESUME: {resume_input}
-JOB DESCRIPTION: {jd_input}"""
+2. Structure:
+   - Formal greeting
+   - Engaging opening
+   - 2 body paragraphs matching resume skills to JD needs
+   - Professional closing
+
+RESUME:
+{resume_input}
+
+JOB DESCRIPTION:
+{jd_input}
+"""
             }
-            
+
             system_prompt = PROMPTS[outreach_type]
-            
+
             with st.spinner(f"Drafting your {outreach_type}..."):
                 res = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[{"role": "user", "content": system_prompt}],
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": system_prompt
+                        }
+                    ],
                     temperature=0.3
                 )
-                
+
                 st.success("Draft Generated!")
                 st.markdown(res.choices[0].message.content)
+
+    # =====================================================
+    # ADDITIONAL CAREER INSIGHTS - NEW FEATURE
+    # =====================================================
+
+    st.divider()
+
+    st.subheader("🔍 Additional Career Insights")
+
+    additional_analysis = st.selectbox(
+        "Select Additional Career Insights:",
+        [
+            "No Additional Analysis",
+            "Generate Interview Questions",
+            "Analyze Missing Skills",
+            "Generate Both"
+        ]
+    )
+
+    if st.button("Generate Additional Insights"):
+
+        if not resume_input or not jd_input:
+            st.warning("Please provide both Resume and Job Description.")
+
+        elif additional_analysis == "No Additional Analysis":
+            st.info("No additional analysis selected.")
+
+        else:
+
+            # =================================================
+            # INTERVIEW QUESTIONS
+            # =================================================
+
+            if additional_analysis in [
+                "Generate Interview Questions",
+                "Generate Both"
+            ]:
+
+                interview_prompt = f"""
+You are an expert technical recruiter and interview coach.
+
+Based ONLY on the candidate's RESUME and the TARGET JOB DESCRIPTION,
+generate personalized interview questions.
+
+RESUME:
+{resume_input}
+
+TARGET JOB DESCRIPTION:
+{jd_input}
+
+Generate questions in the following categories:
+
+1. Technical Questions
+- Questions directly related to the technical skills mentioned
+  in the job description.
+
+2. Resume-Based Questions
+- Questions about the candidate's projects, skills, education,
+  internships, or experience mentioned in the resume.
+
+3. Behavioral / HR Questions
+- Questions relevant to the candidate and this specific role.
+
+RULES:
+- Do NOT invent experience that is not present in the resume.
+- Questions should be specific to this candidate and job.
+- Avoid generic questions whenever possible.
+- Provide approximately 5 questions per category.
+- Clearly separate the three categories.
+"""
+
+                with st.spinner("Generating personalized interview questions..."):
+
+                    interview_res = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": interview_prompt
+                            }
+                        ],
+                        temperature=0.4
+                    )
+
+                    st.subheader("🎤 Personalized Interview Questions")
+                    st.markdown(
+                        interview_res.choices[0].message.content
+                    )
+
+            # =================================================
+            # MISSING SKILLS ANALYZER
+            # =================================================
+
+            if additional_analysis in [
+                "Analyze Missing Skills",
+                "Generate Both"
+            ]:
+
+                skills_prompt = f"""
+You are an expert career coach and technical recruiter.
+
+Compare the candidate's RESUME with the TARGET JOB DESCRIPTION
+and analyze the candidate's skill gaps.
+
+RESUME:
+{resume_input}
+
+TARGET JOB DESCRIPTION:
+{jd_input}
+
+Identify:
+
+1. Skills already present in the resume that match the job description.
+
+2. Important skills mentioned in the job description that are
+   missing or not clearly demonstrated in the resume.
+
+3. For every missing skill, assign a priority:
+   - High
+   - Medium
+   - Low
+
+4. Give a short recommendation explaining what the candidate
+   should learn, practice, or improve for each important missing skill.
+
+RULES:
+- ONLY use information actually present in the resume and job description.
+- Do NOT claim that the candidate has a skill unless it appears
+  in the resume.
+- Do NOT invent experience.
+- Focus on skills that are genuinely relevant to the target role.
+- Keep the analysis practical and concise.
+"""
+
+                with st.spinner("Analyzing skill gaps..."):
+
+                    skills_res = client.chat.completions.create(
+                        model="llama-3.3-70b-versatile",
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": skills_prompt
+                            }
+                        ],
+                        temperature=0.3
+                    )
+
+                    st.subheader("🧠 Missing Skills Analysis")
+                    st.markdown(
+                        skills_res.choices[0].message.content
+                    )
+
 
 # =========================================================
 # TAB 2: HACKATHON SCOPER
 # =========================================================
+
 with tab2:
     st.header("Hackathon MVP Scoper")
-    
-    raw_idea = st.text_input("Enter your rough project idea:", placeholder="e.g., An app that tracks gym equipment usage in real-time")
-    
+
+    raw_idea = st.text_input(
+        "Enter your rough project idea:",
+        placeholder="e.g., An app that tracks gym equipment usage in real-time"
+    )
+
     tools_available = st.multiselect(
         "Select tools you know how to use:",
-        ["Python", "Streamlit", "HTML/CSS", "React", "Groq API", "Gemini API", "Supabase", "Firebase", "SQL"],
-        default=["Python", "Streamlit", "Groq API"]
+        [
+            "Python",
+            "Streamlit",
+            "HTML/CSS",
+            "React",
+            "Groq API",
+            "Gemini API",
+            "Supabase",
+            "Firebase",
+            "SQL"
+        ],
+        default=[
+            "Python",
+            "Streamlit",
+            "Groq API"
+        ]
     )
-    
+
     if st.button("Scope Project MVP", type="primary"):
+
         if not raw_idea:
             st.warning("Please enter a project idea.")
+
         else:
+
             scoping_prompt = f"""
-            You are a Senior Technical Product Manager.
-            Scope a 24-hour hackathon MVP for this idea: {raw_idea}
-            
-            AVAILABLE TECH STACK: {', '.join(tools_available)}
-            
-            INSTRUCTIONS:
-            1. Define the core problem in 1 sentence.
-            2. List 3 key features for V1 that CAN be built using ONLY the available tech stack.
-            3. Output STRICT JSON format matching this schema:
-            {{
-              "project_title": "Catchy Name",
-              "problem_statement": "1 sentence",
-              "mvp_features": ["Feature A", "Feature B", "Feature C"],
-              "tech_stack_mapping": "How the chosen tools will be used"
-            }}
-            """
-            
+You are a Senior Technical Product Manager.
+
+Scope a 24-hour hackathon MVP for this idea:
+{raw_idea}
+
+AVAILABLE TECH STACK:
+{', '.join(tools_available)}
+
+INSTRUCTIONS:
+
+1. Define the core problem in 1 sentence.
+2. List 3 key features for V1 that CAN be built using ONLY
+   the available tech stack.
+3. Output STRICT JSON format matching this schema:
+
+{{
+  "project_title": "Catchy Name",
+  "problem_statement": "1 sentence",
+  "mvp_features": [
+      "Feature A",
+      "Feature B",
+      "Feature C"
+  ],
+  "tech_stack_mapping": "How the chosen tools will be used"
+}}
+"""
+
             with st.spinner("Scoping MVP requirements..."):
+
                 res = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
-                    messages=[{"role": "user", "content": scoping_prompt}],
-                    response_format={"type": "json_object"},
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": scoping_prompt
+                        }
+                    ],
+                    response_format={
+                        "type": "json_object"
+                    },
                     temperature=0.4
                 )
-                
-                json_data = json.loads(res.choices[0].message.content)
-                
-                st.subheader(f"📌 Project: {json_data.get('project_title')}")
-                st.write(f"**Core Problem:** {json_data.get('problem_statement')}")
-                
+
+                json_data = json.loads(
+                    res.choices[0].message.content
+                )
+
+                st.subheader(
+                    f"📌 Project: {json_data.get('project_title')}"
+                )
+
+                st.write(
+                    f"**Core Problem:** "
+                    f"{json_data.get('problem_statement')}"
+                )
+
                 st.markdown("**MVP Feature Scope:**")
-                for feature in json_data.get("mvp_features", []):
+
+                for feature in json_data.get(
+                    "mvp_features", []
+                ):
                     st.markdown(f"- {feature}")
-                    
-                st.info(f"**Tech Stack Plan:** {json_data.get('tech_stack_mapping')}")
+
+                st.info(
+                    f"**Tech Stack Plan:** "
+                    f"{json_data.get('tech_stack_mapping')}"
+                )
