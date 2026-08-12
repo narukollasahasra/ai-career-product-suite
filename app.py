@@ -1,10 +1,7 @@
-!pip install streamlit
-!pip install groq
 import streamlit as st
 import os
 import json
 from groq import Groq
-from google.colab import userdata
 
 # =========================================================
 # PAGE CONFIGURATION
@@ -19,10 +16,14 @@ st.set_page_config(
 st.title("🚀 AI Student Utility Suite")
 st.write("Build V1 applications powered by Groq & Llama 3.3")
 
-api_key = userdata.get("GROQ_API_KEY")
+api_key = os.environ.get("GROQ_API_KEY")
 
 if not api_key:
-    st.error("⚠️ Groq API Key not found! Please configure it in your Colab secrets using `userdata.set('GROQ_API_KEY', 'your_api_key')`.")
+    if "GROQ_API_KEY" in st.secrets:
+        api_key = st.secrets["GROQ_API_KEY"]
+
+if not api_key:
+    st.error("⚠️ Groq API Key not found! Please configure it in your secrets.")
     st.stop()
 
 client = Groq(api_key=api_key)
