@@ -1,9 +1,14 @@
+!pip install streamlit
+!pip install groq
 import streamlit as st
 import os
 import json
 from groq import Groq
+from google.colab import userdata
 
-# Page Configuration
+# =========================================================
+# PAGE CONFIGURATION
+# =========================================================
 
 st.set_page_config(
     page_title="AI Career & Product Suite",
@@ -14,28 +19,31 @@ st.set_page_config(
 st.title("🚀 AI Student Utility Suite")
 st.write("Build V1 applications powered by Groq & Llama 3.3")
 
-api_key = os.environ.get("GROQ_API_KEY")
+api_key = userdata.get("GROQ_API_KEY")
 
 if not api_key:
-    if "GROQ_API_KEY" in st.secrets:
-        api_key = st.secrets["GROQ_API_KEY"]
-
-if not api_key:
-    st.error("⚠️ Groq API Key not found! Please configure it in your secrets.")
+    st.error("⚠️ Groq API Key not found! Please configure it in your Colab secrets using `userdata.set('GROQ_API_KEY', 'your_api_key')`.")
     st.stop()
 
 client = Groq(api_key=api_key)
 
-tab1, tab2 = st.tabs([
+# =========================================================
+# TABS
+# =========================================================
+
+tab1, tab2, tab3 = st.tabs([
     "🎯 Resume & Email Tailor",
-    "💡 Hackathon MVP Scoper"
+    "💡 Hackathon MVP Scoper",
+    "🎤 AI Interview Coach"
 ])
+
 
 # =========================================================
 # TAB 1: RESUME TAILOR
 # =========================================================
 
 with tab1:
+
     st.header("Smart Resume & Outreach Tailor")
 
     col1, col2 = st.columns(2)
@@ -65,11 +73,17 @@ with tab1:
     )
 
     if st.button("Draft Tailored Outreach", type="primary"):
+
         if not resume_input or not jd_input:
-            st.warning("Please provide both Resume and Job Description.")
+
+            st.warning(
+                "Please provide both Resume and Job Description."
+            )
+
         else:
 
             PROMPTS = {
+
                 "LinkedIn Summary": f"""
 You are an expert career coach. Write a compelling LinkedIn "About"
 Summary for the candidate, positioning them for the target Job Description.
@@ -96,7 +110,7 @@ STRICT RULES:
 
 1. ONLY use facts from the RESUME. NO hallucinations.
 2. Tone: Direct, polite, and confident.
-3. Include a clear Call to Action (e.g., a 10-min chat).
+3. Include a clear Call to Action.
 
 RESUME:
 {resume_input}
@@ -113,7 +127,7 @@ STRICT RULES:
 
 1. ONLY use facts from the RESUME. NO hallucinations.
 2. Must include a catchy, professional Subject Line.
-3. Tone: Professional, value-driven.
+3. Tone: Professional and value-driven.
 4. Map 1-2 key resume achievements directly to the job requirements.
 
 RESUME:
@@ -146,7 +160,10 @@ JOB DESCRIPTION:
 
             system_prompt = PROMPTS[outreach_type]
 
-            with st.spinner(f"Drafting your {outreach_type}..."):
+            with st.spinner(
+                f"Drafting your {outreach_type}..."
+            ):
+
                 res = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[
@@ -159,10 +176,13 @@ JOB DESCRIPTION:
                 )
 
                 st.success("Draft Generated!")
-                st.markdown(res.choices[0].message.content)
+
+                st.markdown(
+                    res.choices[0].message.content
+                )
 
     # =====================================================
-    # ADDITIONAL CAREER INSIGHTS - NEW FEATURE
+    # ADDITIONAL CAREER INSIGHTS
     # =====================================================
 
     st.divider()
@@ -182,16 +202,22 @@ JOB DESCRIPTION:
     if st.button("Generate Additional Insights"):
 
         if not resume_input or not jd_input:
-            st.warning("Please provide both Resume and Job Description.")
+
+            st.warning(
+                "Please provide both Resume and Job Description."
+            )
 
         elif additional_analysis == "No Additional Analysis":
-            st.info("No additional analysis selected.")
+
+            st.info(
+                "No additional analysis selected."
+            )
 
         else:
 
-            # =================================================
+            # =============================================
             # INTERVIEW QUESTIONS
-            # =================================================
+            # =============================================
 
             if additional_analysis in [
                 "Generate Interview Questions",
@@ -231,7 +257,9 @@ RULES:
 - Clearly separate the three categories.
 """
 
-                with st.spinner("Generating personalized interview questions..."):
+                with st.spinner(
+                    "Generating personalized interview questions..."
+                ):
 
                     interview_res = client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
@@ -244,14 +272,17 @@ RULES:
                         temperature=0.4
                     )
 
-                    st.subheader("🎤 Personalized Interview Questions")
+                    st.subheader(
+                        "🎤 Personalized Interview Questions"
+                    )
+
                     st.markdown(
                         interview_res.choices[0].message.content
                     )
 
-            # =================================================
+            # =============================================
             # MISSING SKILLS ANALYZER
-            # =================================================
+            # =============================================
 
             if additional_analysis in [
                 "Analyze Missing Skills",
@@ -294,7 +325,9 @@ RULES:
 - Keep the analysis practical and concise.
 """
 
-                with st.spinner("Analyzing skill gaps..."):
+                with st.spinner(
+                    "Analyzing skill gaps..."
+                ):
 
                     skills_res = client.chat.completions.create(
                         model="llama-3.3-70b-versatile",
@@ -307,7 +340,10 @@ RULES:
                         temperature=0.3
                     )
 
-                    st.subheader("🧠 Missing Skills Analysis")
+                    st.subheader(
+                        "🧠 Missing Skills Analysis"
+                    )
+
                     st.markdown(
                         skills_res.choices[0].message.content
                     )
@@ -318,6 +354,7 @@ RULES:
 # =========================================================
 
 with tab2:
+
     st.header("Hackathon MVP Scoper")
 
     raw_idea = st.text_input(
@@ -348,7 +385,10 @@ with tab2:
     if st.button("Scope Project MVP", type="primary"):
 
         if not raw_idea:
-            st.warning("Please enter a project idea.")
+
+            st.warning(
+                "Please enter a project idea."
+            )
 
         else:
 
@@ -380,7 +420,9 @@ INSTRUCTIONS:
 }}
 """
 
-            with st.spinner("Scoping MVP requirements..."):
+            with st.spinner(
+                "Scoping MVP requirements..."
+            ):
 
                 res = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
@@ -409,14 +451,163 @@ INSTRUCTIONS:
                     f"{json_data.get('problem_statement')}"
                 )
 
-                st.markdown("**MVP Feature Scope:**")
+                st.markdown(
+                    "**MVP Feature Scope:**"
+                )
 
                 for feature in json_data.get(
                     "mvp_features", []
                 ):
-                    st.markdown(f"- {feature}")
+
+                    st.markdown(
+                        f"- {feature}"
+                    )
 
                 st.info(
                     f"**Tech Stack Plan:** "
                     f"{json_data.get('tech_stack_mapping')}"
+                )
+
+
+# =========================================================
+# TAB 3: AI INTERVIEW COACH
+# =========================================================
+
+with tab3:
+
+    st.header("🎤 AI Interview Coach")
+
+    st.write(
+        "Practice for your target role with personalized "
+        "AI-generated interview questions."
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        interview_resume = st.text_area(
+            "Paste Your Resume:",
+            height=220,
+            placeholder="Paste your resume here..."
+        )
+
+    with col2:
+
+        interview_jd = st.text_area(
+            "Paste Target Job Description:",
+            height=220,
+            placeholder="Paste the job description here..."
+        )
+
+    interview_type = st.selectbox(
+        "Select Interview Type:",
+        [
+            "Technical Interview",
+            "HR / Behavioral Interview",
+            "Project-Based Interview",
+            "Mixed Interview"
+        ]
+    )
+
+    number_of_questions = st.selectbox(
+        "Number of Questions:",
+        [5, 10, 15]
+    )
+
+    if st.button(
+        "Generate Interview Questions",
+        type="primary"
+    ):
+
+        if not interview_resume or not interview_jd:
+
+            st.warning(
+                "Please provide both your Resume and Job Description."
+            )
+
+        else:
+
+            interview_coach_prompt = f"""
+You are an expert interviewer and career coach.
+
+Your task is to prepare a personalized interview for a candidate
+based on their resume and the target job description.
+
+CANDIDATE RESUME:
+{interview_resume}
+
+TARGET JOB DESCRIPTION:
+{interview_jd}
+
+INTERVIEW TYPE:
+{interview_type}
+
+NUMBER OF QUESTIONS:
+{number_of_questions}
+
+INSTRUCTIONS:
+
+1. Generate exactly {number_of_questions} interview questions.
+
+2. Make the questions highly relevant to the target job.
+
+3. Use the candidate's actual resume, projects, skills,
+   education, and experience when creating personalized questions.
+
+4. Do not invent any experience, skill, project, or achievement
+   that is not present in the resume.
+
+5. For a Technical Interview:
+   Focus on technical skills, tools, technologies, and concepts
+   mentioned in the job description.
+
+6. For an HR / Behavioral Interview:
+   Focus on motivation, communication, teamwork, strengths,
+   weaknesses, challenges, and career goals.
+
+7. For a Project-Based Interview:
+   Focus on the projects and experiences mentioned in the resume.
+
+8. For a Mixed Interview:
+   Include a balanced combination of technical, project-based,
+   and behavioral questions.
+
+9. Number every question clearly.
+
+10. Do not provide answers. Only provide the interview questions.
+
+11. Start with easier questions and gradually increase the difficulty.
+
+Format the response as:
+
+## Interview Questions
+
+1. Question
+2. Question
+3. Question
+...
+"""
+
+            with st.spinner(
+                "Preparing your personalized interview..."
+            ):
+
+                interview_response = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": interview_coach_prompt
+                        }
+                    ],
+                    temperature=0.5
+                )
+
+                st.success(
+                    "Your personalized interview is ready! 🎯"
+                )
+
+                st.markdown(
+                    interview_response.choices[0].message.content
                 )
